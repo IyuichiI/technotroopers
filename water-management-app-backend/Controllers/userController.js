@@ -1,4 +1,4 @@
-const { getUsers, createUser } = require("../models/UserModel");
+const { getUsers, createUser,getConsumption } = require("../models/UserModel");
 
 const getAllUsers = async (req, res) => {
   try {
@@ -17,5 +17,15 @@ const createNewUser = async (req, res) => {
     res.status(400).json({ error: "Failed to create user" });
   }
 };
+const getAllConsumption = async (req, res) => {
+  try {
+    const consumption = await getConsumption();
+    res.json(consumption);
+  } catch (err) {
+    res.status(400).json({ error: "Failed to fetch consumption" });
+  }
+};
 
-module.exports = { getAllUsers, createNewUser };
+
+
+module.exports = { getAllUsers, createNewUser,getAllConsumption  };

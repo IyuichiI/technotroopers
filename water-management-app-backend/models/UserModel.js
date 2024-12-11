@@ -1,6 +1,7 @@
 const Pool = require("pg").Pool;
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
+require("dotenv").config();
 
 // Database connection
 const pool = new Pool({
@@ -25,6 +26,26 @@ const getUsers = async () => {
   } catch (error) {
     console.error(error);
     throw new Error("Internal server error while fetching users.");
+  }
+};
+// Get all consumption from the database
+const getConsumption = async () => {
+  try {
+    return await new Promise(function (resolve, reject) {
+      pool.query("SELECT * FROM consumption", (error, results) => {
+        if (error) {
+          reject(error);
+        }
+        if (results && results.rows) {
+          resolve(results.rows);
+        } else {
+          reject(new Error("No consumption found in the database."));
+        }
+      });
+    });
+  } catch (error) {
+    console.error(error);
+    throw new Error("Internal server error while fetching consumption.");
   }
 };
 
@@ -188,4 +209,5 @@ module.exports = {
   deleteUser,
   updateUser,
   loginUser,
+  getConsumption,
 };

@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
-
+const { getAllUsers,getAllConsumption } = require("./controllers/userController")
 require("dotenv").config();
 
 const app = express();
@@ -23,20 +23,18 @@ const pool = new Pool({
 // Routes
 app.get("/api/consumption", async (req, res) => {
     try {
-        const result = await pool.query("SELECT * FROM consumption");
-        res.json(result.rows);
+        const consumption = await getAllConsumption(req, res);
+        res.json(consumption);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send("Server Error");
+        res.status(500).json({ error: err.message });
     }
 });
 app.get("/api/users", async (req, res) => {
     try {
-        const result = await pool.query("SELECT * FROM users");
-        res.json(result.rows);
+        const users = await getAllUsers(req, res);
+        res.json(users);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send("Server Error");
+        res.status(500).json({ error: err.message });
     }
 });
 pool.connect((err) => {
