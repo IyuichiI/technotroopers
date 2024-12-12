@@ -6,7 +6,7 @@ import axios from 'axios';
 
 function SignUp() {
     const [values, setValues] = useState({
-        name: '',
+        id:'',
         email: '',
         password: '',
     });
@@ -14,32 +14,37 @@ function SignUp() {
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
 
+
+    const handleSubmit = () => {
         // Get validation results
         const validationErrors = validation(values);
 
         // Update errors state
         setErrors(validationErrors);
-
         // Check if there are no errors
         const hasNoErrors = Object.keys(validationErrors).length === 0;
 
         if (hasNoErrors) {
-            // Perform the POST request with then and catch
-            axios.post('http://localhost:5000/SoftwareProject', values)
-              .then((res) => {
-                // Handle the response if registration is successful
-                console.log('User registered successfully:', res.data);
-                navigate('/LogIn'); // Navigate to login page after successful registration
-              })
-              .catch((err) => {
-                // Handle errors during the request
-                console.error('Error during sign-up:', err);
-                // Show a more detailed error message in case of failure
-                alert('Registration failed: ' + (err.response?.data?.message || 'Unknown error'));
-              });
+                fetch("http://localhost:5000/api/signup", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ values}),
+                  })
+                    .then((response) => {
+                        console.log(response);
+                        if (response.status===500) {
+                            alert("id or email already in use")
+                        }else if (response.status===200) {
+                            alert("you got in successfully");
+                            navigate("/dashboard");
+                        }
+                      return response.text();
+                    })
+
+        
         }
     };
 
@@ -57,14 +62,14 @@ function SignUp() {
                             Already have an account? <Link to="/LogIn" id="linkToLogIn">Log In</Link>
                         </p>
 
-                        <form onSubmit={handleSubmit}>
+                        <>
                             <div className="Labels">
-                                <label htmlFor="name">Name</label><br />
-                                <input type="text" id="name" onChange={handleInput} name="name" />
-                                {errors.name && <span className="text-danger">{errors.name}</span>}
+
+                                <label htmlFor="id">id</label><br />
+                                <input type="id" id="id" onChange={handleInput} name="id" />
                                 <br />
 
-                                <label htmlFor="email">Email</label><br />
+                            <label htmlFor="email">Email</label><br />
                                 <input type="email" id="email" onChange={handleInput} name="email" />
                                 {errors.email && <span className="text-danger">{errors.email}</span>}
                                 <br />
@@ -79,8 +84,8 @@ function SignUp() {
                                 <input type="checkbox" />
                                 <label htmlFor="subscribe">Keep me signed in</label><br />
                             </div>
-                            <button type="submit" id="signup">Sign Up</button>
-                        </form>
+                            <button onClick={()=>handleSubmit()} type="submit" id="signup">Sign Up</button>
+                        </>
                     </div>
                 </div>
                 <Footer />

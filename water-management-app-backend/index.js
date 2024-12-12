@@ -1,7 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
-const { getAllUsers,getAllConsumption } = require("./controllers/userController")
+
+const { getUsers, createUser, getConsumption, loginUser, signUp } = require("./models/UserModel");
+
 require("dotenv").config();
 
 const app = express();
@@ -23,20 +25,56 @@ const pool = new Pool({
 // Routes
 app.get("/api/consumption", async (req, res) => {
     try {
-        const consumption = await getAllConsumption(req, res);
+        const consumption = await getConsumption();
         res.json(consumption);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
+
 app.get("/api/users", async (req, res) => {
     try {
-        const users = await getAllUsers(req, res);
+        const users = await getUsers();
         res.json(users);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
+
+// Login route
+app.post("/api/login", async (req, res) => {
+    try {
+        console.log(req.body.values);
+        const result = await loginUser(req.body.values); // Call the loginUser function from the controller
+        console.log(result)
+        if (result == JSON.stringify("No user found with the provided email.")) {
+            res.status(500).json({ error: "No user found with the provided email." });
+
+        } else if (result == JSON.stringify("Invalid email or password.")) {
+            res.status(501).json({ error: "Invalid email or password." });
+
+        } else {
+            res.json(result); // Send back the login result (success or failure)
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message || "Login failed" });
+    }
+});
+// SignUp route
+app.post("/api/signup", async (req, res) => {
+    try {
+        const result = await signUp(req.body.values); // Call the loginUser function from the controller
+        if (result == JSON.stringify("email already in use")) {
+            res.status(500).json({ error: "Email or Id already in use" });
+        } else {
+            res.json(result); // Send back the login result (success or failure)
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message || "Login failed" });
+    }
+});
+
+// Test database connection
 pool.connect((err) => {
     if (err) {
         console.error("Error connecting to the database:", err.message);
@@ -44,6 +82,5 @@ pool.connect((err) => {
         console.log("Connected to the database successfully!");
     }
 });
-
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

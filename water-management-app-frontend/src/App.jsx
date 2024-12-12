@@ -6,6 +6,7 @@ import GetToKnowONE from './GetToKnowONE'
 import FAQs from './FAQs'
 import ContactUs from './ContactUs'
 import SignUp from './SignUp'
+import Dashboard from './Dashboard'
 
 function App() {
  
@@ -21,6 +22,7 @@ function App() {
                 <Route path="/ContactUs" element={<ContactUs />} />
                 <Route path="/SignUp" element={<SignUp />} />
                 <Route path="/login" element={<LogIn />} />
+                <Route path="/dashboard" element={<Dashboard />} />
             </Routes>
         
 </BrowserRouter>

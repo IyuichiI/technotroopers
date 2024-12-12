@@ -4,10 +4,6 @@ function validation(values) {
     const email_pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const password_pattern = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9]{8,}$/;
 
-    // Validate name
-    if (!values.name || values.name.trim() === "") {
-        errors.name = "Name should not be empty";
-    }
 
     // Validate email
     if (!values.email || values.email.trim() === "") {

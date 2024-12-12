@@ -13,30 +13,38 @@ function LogIn() {
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
 
+    const handleSubmit = () => {
         // Get validation results
         const validationErrors = validation(values);
 
         // Update errors state
         setErrors(validationErrors);
-
         // Check if there are no errors
         const hasNoErrors = Object.keys(validationErrors).length === 0;
 
         if (hasNoErrors) {
-            // Perform the POST request
-            axios.post('http://localhost:5000/logIn', values)
-              .then((res) => {
-                console.log('Login successful:', res.data);
-                alert('Welcome ' + res.data.user.name); // Display success message
-                navigate('/'); // Navigate to the home page (or dashboard)
-              })
-              .catch((err) => {
-                console.error('Error during login:', err);
-                alert('Login failed: ' + (err.response?.data?.message || 'Unknown error'));
-              });
+                fetch("http://localhost:5000/api/login", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ values}),
+                  })
+                    .then((response) => {
+                        console.log(response);
+                        if (response.status===500) {
+                            alert("No user found with the provided email.")
+                        }else if (response.status===501) {
+                            alert("Invalid email or password.")
+                        }else if (response.status===200) {
+                            alert("you got in successfully");
+                            navigate("/dashboard");
+                        }
+                      return response.text();
+                    })
+
+        
         }
     };
 
@@ -53,7 +61,7 @@ function LogIn() {
                         <p>
                             Don't have an account? <Link to="/SignUp" id="linkToSignUp">Sign Up</Link>
                         </p>
-                        <form onSubmit={handleSubmit}>
+                        <>
                             <div className="Labels">
                                 <label htmlFor="email">Email</label><br />
                                 <input type="email" id="email" onChange={handleInput} name="email" />
@@ -70,8 +78,8 @@ function LogIn() {
                                 <input type="checkbox" />
                                 <label htmlFor="subscribe">Keep me logged in</label><br />
                             </div>
-                            <button type="submit" id="login">Login</button>
-                        </form>
+                            <button onClick={()=>handleSubmit()}  id="login">Login</button>
+                        </>
                     </div>
                 </div>
                 <Footer />

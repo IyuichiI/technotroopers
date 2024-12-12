@@ -173,11 +173,11 @@ const updateUser = (id, body) => {
 // Login a user
 const loginUser = (body) => {
   return new Promise(function (resolve, reject) {
-    const { username, password } = body;
+    const { email, password } = body;
 
     pool.query(
-      "SELECT id, password FROM users WHERE username = $1",
-      [username],
+      "SELECT id, password FROM users WHERE email = $1",
+      [email],
       (error, results) => {
         if (error) {
           reject(error);
@@ -188,16 +188,58 @@ const loginUser = (body) => {
               reject(err);
             }
             if (result === true) {
-              resolve(`Login successful. User ID: ${results.rows[0].id}`);
+              resolve(results.rows[0].id);
             } else {
-              resolve("Invalid username or password.");
+              resolve(JSON.stringify("Invalid email or password."));
             }
           });
         } else {
-          resolve("No user found with the provided username.");
+          resolve(JSON.stringify("No user found with the provided email."));
         }
       }
     );
+  });
+};
+
+// signUp a user
+const signUp = (body) => {
+  return new Promise(function (resolve, reject) {
+    const { id, email, password } = body;
+    pool.query("SELECT id FROM users WHERE email = $1",
+      [ email],(error, results) => {
+        if (error) {
+          reject(error);
+        }
+        if (results && results.rows && results.rows[0]) {
+          resolve(JSON.stringify("email already in use"));
+        } else
+      {
+        
+
+    bcrypt.genSalt(saltRounds, function(err, salt) {
+      bcrypt.hash(password, salt, function(err, hash) {
+          if (err){ reject(err)};
+          pool.query(
+            "INSERT INTO users (id_number,email,password) VALUES ($1, $2,$3) RETURNING *",
+            [id,email, hash],
+            (error, results) => {
+              if (error) {
+                reject(error);
+              }
+              if (results && results.rows) {
+                resolve(
+                  JSON.stringify(results.rows[0].email)
+                );
+              } else {
+                reject(new Error("No results found"));
+              }
+            }
+          );
+      });
+  });
+
+  }
+});
   });
 };
 
@@ -210,4 +252,5 @@ module.exports = {
   updateUser,
   loginUser,
   getConsumption,
+  signUp
 };
