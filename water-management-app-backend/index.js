@@ -83,4 +83,25 @@ pool.connect((err) => {
     }
 });
 
+app.get("/api/consumption/:userId/:year", async (req, res) => {
+    const { userId, year } = req.params;
+    console.log(year);
+    try {
+        const result = await pool.query(
+            `SELECT EXTRACT(MONTH FROM consumption_date) AS month, SUM(consumption_value) AS total_consumption
+            FROM consumption
+            WHERE user_id = $1 AND EXTRACT(YEAR FROM consumption_date) = $2
+            GROUP BY month
+            ORDER BY month`,
+            [userId, year]
+        );
+        console.log(result.rows)
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+
