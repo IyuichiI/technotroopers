@@ -5,6 +5,8 @@ import Header from './Header.jsx';
 function FAQs() {
   const [activeIndex, setActiveIndex] = useState(null);
 
+  var charty = document.getElementById('acquisitions');
+  charty.style.visibility="hidden";
   const faqItems = [
     {
       question: 'What is Smart Water Bills?',

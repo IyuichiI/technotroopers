@@ -1,18 +1,20 @@
 import { Link, useNavigate } from 'react-router-dom';
 import Footer from './Footer.jsx';
-import React, { useState } from 'react';
+import React, { useState} from 'react';
 import validation from './LoginValidation.jsx';
 import axios from 'axios';
-
-function LogIn() {
+function LogIn(prop) {
+    // console.log(prop);
+    const [auth,setAuth,id,setId]=prop.box;
     const [values, setValues] = useState({
         email: '',
         password: '',
     });
-
     const [errors, setErrors] = useState({});
-    const navigate = useNavigate();
 
+    const navigate = useNavigate();
+    var charty = document.getElementById('acquisitions');
+    charty.style.visibility="hidden";
 
     const handleSubmit = () => {
         // Get validation results
@@ -24,26 +26,28 @@ function LogIn() {
         const hasNoErrors = Object.keys(validationErrors).length === 0;
 
         if (hasNoErrors) {
-                fetch("http://localhost:5000/api/login", {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ values}),
-                  })
-                    .then((response) => {
-                        console.log(response);
-                        if (response.status===500) {
-                            alert("No user found with the provided email.")
-                        }else if (response.status===501) {
-                            alert("Invalid email or password.")
-                        }else if (response.status===200) {
-                            alert("you got in successfully");
-                            navigate("/dashboard");
-                        }
-                      return response.text();
-                    })
-
+            
+      axios
+      .post(`http://localhost:5000/api/login`,{values})
+      .then((response) => {
+        console.log(response);
+        if (response.status===500) {
+            alert("No user found with the provided email.")
+        }else if (response.status===501) {
+            alert("Invalid email or password.")
+        }else if (response.status===200) {
+            // console.log(response)
+            setAuth(true);
+            setId(response.data);
+            localStorage.setItem("id",response.data);
+            alert("you got in successfully")
+        }
+      })
+      .then((response)=>navigate("/dashboard"))
+      .catch((error) => {
+        console.error("There was an error!", error);
+      });
+                
         
         }
     };
@@ -54,7 +58,7 @@ function LogIn() {
 
     return (
         <>
-            <div id="back">
+           {!auth && <div id="back">
                 <div id="background">
                     <div className="logIn">
                         <h3>Log In</h3>
@@ -83,7 +87,8 @@ function LogIn() {
                     </div>
                 </div>
                 <Footer />
-            </div>
+            </div>}
+            {/* {auth && <Dashboard id={id} /> } */}
         </>
     );
 }

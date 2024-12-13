@@ -3,6 +3,8 @@ import React from 'react'
 
 function GetToKnowONE(){
 
+     var charty = document.getElementById('acquisitions');
+     charty.style.visibility="hidden";
 
 return(
      <>

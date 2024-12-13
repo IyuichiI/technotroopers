@@ -2,19 +2,24 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Chart from 'chart.js/auto';
 
-const ConsumptionData = () => {
-  const [data, setData] = useState([]);
+const Dashboard = (prop) => {
+  let id=localStorage.getItem("id");
+  console.log(id);
+  if (!id) {
+    id=prop.id;
+  } 
   const [myChart, setMyChart] = useState();
   const [year, setYear] = useState(new Date().getFullYear());
   const years = Array.from(new Array(20), (val, index) => new Date().getFullYear() - index);
 
+  
   useEffect(() => {
-    setTimeout(() => {
 
       axios
-        .get(`http://localhost:5000/api/consumption/39/${year}`)
+        .get(`http://localhost:5000/api/consumption/${id}/${year}`)
         .then((response) => {
-          setData(response.data);
+          var charty = document.getElementById('acquisitions');
+            charty.style.visibility="visible";
             setMyChart(new Chart(
               document.getElementById('acquisitions'),
               {
@@ -34,7 +39,6 @@ const ConsumptionData = () => {
         .catch((error) => {
           console.error("There was an error!", error);
         });
-    }, 0);
   }, [year]); // Empty array means this runs once when the component mounts
 
 
@@ -53,4 +57,4 @@ const ConsumptionData = () => {
   );
 };
 
-export default ConsumptionData;
+export default Dashboard;

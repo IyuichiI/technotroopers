@@ -228,7 +228,7 @@ const signUp = (body) => {
               }
               if (results && results.rows) {
                 resolve(
-                  JSON.stringify(results.rows[0].email)
+                  JSON.stringify(results.rows[0].id)
                 );
               } else {
                 reject(new Error("No results found"));

@@ -86,6 +86,7 @@ pool.connect((err) => {
 app.get("/api/consumption/:userId/:year", async (req, res) => {
     const { userId, year } = req.params;
     console.log(year);
+    console.log(userId);
     try {
         const result = await pool.query(
             `SELECT EXTRACT(MONTH FROM consumption_date) AS month, SUM(consumption_value) AS total_consumption

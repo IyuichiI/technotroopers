@@ -10,6 +10,8 @@ function SignUp() {
         email: '',
         password: '',
     });
+    var charty = document.getElementById('acquisitions');
+    charty.style.visibility="hidden";
 
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();

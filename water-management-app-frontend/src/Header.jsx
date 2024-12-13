@@ -2,15 +2,16 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 
-function Header(){
-  
+function Header(prop){
+    console.log(prop.pers.pers)
+    const [b,setB]=prop.pers.pers;
 return(
 
     <header>
         <div id="div1">
         
         <h1 id="h1">Smart Water Bills</h1>
-        <div id = "div2">
+       {!b && <div id = "div2">
                <Link to="/SignUp">
                 <button id="SignUp" className="buttons-header">Sign Up</button>
                 </Link>
@@ -18,7 +19,16 @@ return(
                 <button id="LogIn" className="buttons-header" >Log In</button>
                  </Link>
             
-        </div>
+        </div>}
+        {b && <div id = "div2">
+               <Link to="/dashboard">
+                <button id="SignUp" className="buttons-header">Dashboard</button>
+                </Link>
+                <Link to="/">
+                <button onClick={()=>{localStorage.setItem("id",0);setB(false)}} id="LogIn" className="buttons-header" >Sign Out</button>
+                 </Link>
+            
+        </div>}
         </div>
       
         

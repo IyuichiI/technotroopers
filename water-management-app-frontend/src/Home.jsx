@@ -1,9 +1,19 @@
 import Header from "./Header.jsx";
-import React, { useRef, useState, useEffect } from "react";
-
-function Home() {
+import React, { useRef, useState, useEffect,createContext } from "react";
+import LogIn from "./LogIn";
+import GetToKnowONE from './GetToKnowONE'
+import FAQs from './FAQs'
+import ContactUs from './ContactUs'
+import SignUp from './SignUp'
+import Dashboard from './Dashboard'
+import {AuthContext} from "./context/authcontext.js";
+function Home(prop) {
+    const [b,setB]=prop.pers;
+    console.log(b)
     const slidesRef = useRef(null); // Reference for the slides container
     const [currentSlide, setCurrentSlide] = useState(0); // State for the current slide
+    var charty = document.getElementById('acquisitions');
+    charty.style.visibility="hidden";
 
     const slides = [
         {
@@ -35,7 +45,9 @@ function Home() {
 
     return (
         <>
-            <Header />
+        
+       <Header pers={prop} />
+            
             <br />
             <div className="slider">
                 <div className="slides" ref={slidesRef}>
