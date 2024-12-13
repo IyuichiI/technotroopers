@@ -220,7 +220,7 @@ const signUp = (body) => {
       bcrypt.hash(password, salt, function(err, hash) {
           if (err){ reject(err)};
           pool.query(
-            "INSERT INTO users (id_number,email,password) VALUES ($1, $2,$3) RETURNING *",
+            "INSERT INTO users (id,email,password) VALUES ($1, $2,$3) RETURNING *",
             [id,email, hash],
             (error, results) => {
               if (error) {

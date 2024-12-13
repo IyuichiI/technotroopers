@@ -28,7 +28,7 @@ function SignUp() {
         const hasNoErrors = Object.keys(validationErrors).length === 0;
 
         if (hasNoErrors) {
-                fetch("http://localhost:5000/api/signup", {
+                fetch("http://localhost:8080/api/signup", {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",

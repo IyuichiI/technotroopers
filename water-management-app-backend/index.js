@@ -7,7 +7,7 @@ const { getUsers, createUser, getConsumption, loginUser, signUp } = require("./m
 require("dotenv").config();
 
 const app = express();
-const PORT = 5000;
+const PORT = 8080;
 
 // Middleware
 app.use(cors());
@@ -64,6 +64,7 @@ app.post("/api/login", async (req, res) => {
 app.post("/api/signup", async (req, res) => {
     try {
         const result = await signUp(req.body.values); // Call the loginUser function from the controller
+
         if (result == JSON.stringify("email already in use")) {
             res.status(500).json({ error: "Email or Id already in use" });
         } else {

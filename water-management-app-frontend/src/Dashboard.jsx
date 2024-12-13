@@ -16,7 +16,7 @@ const Dashboard = (prop) => {
   useEffect(() => {
 
       axios
-        .get(`http://localhost:5000/api/consumption/${id}/${year}`)
+        .get(`http://localhost:8080/api/consumption/${id}/${year}`)
         .then((response) => {
           var charty = document.getElementById('acquisitions');
             charty.style.visibility="visible";
