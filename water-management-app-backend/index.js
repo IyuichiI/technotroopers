@@ -83,6 +83,35 @@ pool.connect((err) => {
     }
 });
 
+app.get('/api/billing-data/:userId', async (req, res) => {
+    const { userId } = req.params;
+  
+    if (!userId) {
+      return res.status(400).json({ success: false, message: 'User ID is required.' });
+    }
+  
+    try {
+      const query = `
+        SELECT month, consumption, amount_due, status
+        FROM bills
+        WHERE user_id = $1
+        ORDER BY month;
+      `;
+      const result = await pool.query(query, [userId]);
+  
+      if (result.rows.length > 0) {
+        res.json({ success: true, billingData: result.rows });
+      } else {
+        res.status(404).json({ success: false, message: 'No billing data found for this user.' });
+      }
+    } catch (err) {
+      console.error('Error fetching billing data:', err);
+      res.status(500).json({ success: false, message: 'Internal server error.' });
+    }
+  });
+  
+  
+
 app.get("/api/consumption/:userId/:year", async (req, res) => {
     const { userId, year } = req.params;
     console.log(year);
@@ -103,6 +132,47 @@ app.get("/api/consumption/:userId/:year", async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+const fetchBillingData = () => {
+    axios
+      .get(`http://localhost:5000/api/billing-data/${id}`)
+      .then((response) => {
+        console.log("Billing Data API Response:", response.data); // Debugging
+        if (response.data.success) {
+         const unpaid = response.data.billingData.filter((bill) => bill.status.toLowerCase() === "unpaid");
+          const paid = response.data.billingData.filter((bill) => bill.status.toLowerCase() === "paid");            
+          console.log("Unpaid Bills:", unpaid);
+          console.log("Paid Bills:", paid);
+          setUnpaidBills(unpaid);
+          setPaidBills(paid);
+        }
+      })
+      .catch((err) => console.error("Error fetching billing data:", err));
+  };
+  
+app.post('/api/pay-bill', async (req, res) => {
+    const { billId } = req.body;
+  
+    try {
+      // Update the bill status to 'Paid'
+      const query = `
+        UPDATE bills
+        SET status = 'Paid'
+        WHERE id = $1
+        RETURNING *;
+      `;
+      const result = await pool.query(query, [billId]);
+  
+      if (result.rowCount > 0) {
+        res.json({ success: true, message: 'Bill paid successfully.', bill: result.rows[0] });
+      } else {
+        res.status(404).json({ success: false, message: 'Bill not found.' });
+      }
+    } catch (err) {
+      console.error('Error paying bill:', err);
+      res.status(500).json({ success: false, message: 'Internal server error.' });
+    }
+  });
+  
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
 
