@@ -44,9 +44,7 @@ app.get("/api/users", async (req, res) => {
 // Login route
 app.post("/api/login", async (req, res) => {
     try {
-        console.log(req.body.values);
         const result = await loginUser(req.body.values); // Call the loginUser function from the controller
-        console.log(result)
         if (result == JSON.stringify("No user found with the provided email.")) {
             res.status(500).json({ error: "No user found with the provided email." });
 
@@ -82,40 +80,11 @@ pool.connect((err) => {
         console.log("Connected to the database successfully!");
     }
 });
-
-app.get('/api/billing-data/:userId', async (req, res) => {
-    const { userId } = req.params;
-  
-    if (!userId) {
-      return res.status(400).json({ success: false, message: 'User ID is required.' });
-    }
-  
-    try {
-      const query = `
-        SELECT month, consumption, amount_due, status
-        FROM bills
-        WHERE user_id = $1
-        ORDER BY month;
-      `;
-      const result = await pool.query(query, [userId]);
-  
-      if (result.rows.length > 0) {
-        res.json({ success: true, billingData: result.rows });
-      } else {
-        res.status(404).json({ success: false, message: 'No billing data found for this user.' });
-      }
-    } catch (err) {
-      console.error('Error fetching billing data:', err);
-      res.status(500).json({ success: false, message: 'Internal server error.' });
-    }
-  });
   
   
 
 app.get("/api/consumption/:userId/:year", async (req, res) => {
     const { userId, year } = req.params;
-    console.log(year);
-    console.log(userId);
     try {
         const result = await pool.query(
             `SELECT EXTRACT(MONTH FROM consumption_date) AS month, SUM(consumption_value) AS total_consumption
@@ -125,33 +94,72 @@ app.get("/api/consumption/:userId/:year", async (req, res) => {
             ORDER BY month`,
             [userId, year]
         );
-        console.log(result.rows)
         res.json(result.rows);
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ error: err.message });
     }
 });
-const fetchBillingData = () => {
-    axios
-      .get(`http://localhost:5000/api/billing-data/${id}`)
-      .then((response) => {
-        console.log("Billing Data API Response:", response.data); // Debugging
-        if (response.data.success) {
-         const unpaid = response.data.billingData.filter((bill) => bill.status.toLowerCase() === "unpaid");
-          const paid = response.data.billingData.filter((bill) => bill.status.toLowerCase() === "paid");            
-          console.log("Unpaid Bills:", unpaid);
-          console.log("Paid Bills:", paid);
-          setUnpaidBills(unpaid);
-          setPaidBills(paid);
-        }
-      })
-      .catch((err) => console.error("Error fetching billing data:", err));
-  };
+
+
+app.get('/api/billing-data/:userId', async (req, res) => {
+  const { userId } = req.params;
+
+  if (!userId) {
+    return res.status(400).json({ success: false, message: 'User ID is required.' });
+  }
+
+  try {
+    const query = `
+      SELECT month, consumption, amount_due, status
+      FROM bills
+      WHERE user_id = $1  AND status = 'Paid'
+      ORDER BY month;
+    `;
+    const result = await pool.query(query, [userId]);
+
+    if (result.rows.length > 0) {
+      res.json({ success: true, billingData: result.rows });
+    } else {
+      res.status(404).json({ success: false, message: 'No billing data found for this user.' });
+    }
+  } catch (err) {
+    console.error('Error fetching billing data:', err);
+    res.status(500).json({ success: false, message: 'Internal server error.' });
+  }
+});
+
+
+app.get("/api/due-bills/:userId", async (req, res) => {
+  const { userId } = req.params; // Extract the user ID from the URL parameter
+
+  try {
+    // Query to fetch unpaid bills for the given user
+    const query = `
+      SELECT id, month, consumption, amount_due
+      FROM bills
+      WHERE user_id = $1 AND status = 'Unpaid';
+    `;
+
+    const result = await pool.query(query, [userId]);
+
+    if (result.rows.length > 0) {
+      // Return the list of unpaid bills
+      res.json({ success: true, unpaidBills: result.rows });
+    } else {
+      // No unpaid bills found
+      res.status(404).json({ success: false, message: "No unpaid bills found for this user." });
+    }
+  } catch (err) {
+    console.error("Error fetching unpaid bills:", err);
+    res.status(500).json({ success: false, message: "Internal server error." });
+  }
+});
+
   
 app.post('/api/pay-bill', async (req, res) => {
-    const { billId } = req.body;
-  
+  const { billId } = req.body;
+  console.log(billId)
     try {
       // Update the bill status to 'Paid'
       const query = `
@@ -163,6 +171,7 @@ app.post('/api/pay-bill', async (req, res) => {
       const result = await pool.query(query, [billId]);
   
       if (result.rowCount > 0) {
+        console.log(result.rows[0])
         res.json({ success: true, message: 'Bill paid successfully.', bill: result.rows[0] });
       } else {
         res.status(404).json({ success: false, message: 'Bill not found.' });

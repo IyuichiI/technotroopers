@@ -143,19 +143,25 @@ export default Dashboard; */}
 
 // Updated Dashboard.jsx
 import React, { useEffect, useState } from "react";
+import {useNavigate} from "react-router-dom";
 import axios from "axios";
 import Chart from "chart.js/auto";
-
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 const Dashboard = (prop) => {
   let id = localStorage.getItem("id");
   if (!id) {
     id = prop.id;
   }
+  const navigate = useNavigate();
+
   const [myChart, setMyChart] = useState(null);
   const [year, setYear] = useState(new Date().getFullYear());
   const years = Array.from(new Array(20), (val, index) => new Date().getFullYear() - index);
   const [bills, setBills] = useState([]);
+  const [change, setChange] = useState(0);
+  const [dueBills, setDueBills] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentDueIndex, setCurrentDueIndex] = useState(0);
 
   const handleLogout = () => {
     localStorage.removeItem("id");
@@ -207,10 +213,25 @@ const Dashboard = (prop) => {
       .catch((err) => console.error("Error fetching billing data:", err));
   };
 
+  const fetchDueBills = () => {
+    axios
+      .get(`http://localhost:5000/api/due-bills/${id}`)
+      .then((response) => {
+        if (response.data.success) {
+          // console.log(response.data.unpaidBills)
+          setDueBills(response.data.unpaidBills);
+        }
+      })
+      .catch((err) => console.error("Error fetching billing data:", err));
+  };
+
   useEffect(() => {
-    fetchBillingData();
     fetchConsumptionData();
-  }, [year]);
+  }, [year,change]);
+  useEffect(()=>{
+    fetchBillingData();
+    fetchDueBills();
+  },[year,change])
 
   const nextSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % bills.length);
@@ -219,6 +240,26 @@ const Dashboard = (prop) => {
   const prevSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + bills.length) % bills.length);
   };
+
+  const nextDueSlide = () => {
+    setCurrentDueIndex((prevDueIndex) => (prevDueIndex + 1) % dueBills.length);
+  };
+
+  const prevDueSlide = () => {
+    setCurrentDueIndex((prevDueIndex) => (prevDueIndex - 1 + dueBills.length) % bills.length);
+  };
+  const PayedBill=(billId)=>{
+    console.log("got here")
+    axios
+      .post(`http://localhost:5000/api/pay-bill`,{billId})
+      .then((response) => {
+        if (response.data.success) {
+          setChange(change+1);
+        }
+      })
+      .catch((err) => console.error("Error fetching billing data:", err));
+
+  }
 
   return (
     <div className="dashboard-container">
@@ -230,9 +271,9 @@ const Dashboard = (prop) => {
         <button className="logout-button" onClick={handleLogout}>Logout</button>
       </div>
 
-      <div className="main-content">
-        <div className="charts-container">
-          <div className="slider-section">
+      <div className="main-content" >
+        <div className="charts-container" style={{width:"100dvw",display:"flex",flexWrap:"wrap",justifyContent:"space-evenly"}}>
+          <div className="slider-section" style={{flexGrow:"0",flexShrink:"0",flexBasis:"calc(20% - 20px)",height:"70%"}}>
             <h2>Billing History</h2>
             {bills.length > 0 ? (
               <div className="slider">
@@ -248,7 +289,7 @@ const Dashboard = (prop) => {
               <p>No bills available.</p>
             )}
           </div>
-          <div className="charts">
+          <div className="charts" style={{flexGrow:"0",flexShrink:"0",flexBasis:"calc(40% - 20px)"}}>
             <h3>Consumption Data</h3>
             <select
               onChange={(event) => setYear(event.target.value)}
@@ -259,6 +300,27 @@ const Dashboard = (prop) => {
               ))}
             </select>
             <canvas id="acquisitions"></canvas>
+          </div>
+          <div className="slider-section" id="unpaidCart" style={{flexGrow:"0",flexShrink:"0",flexBasis:"calc(20% - 20px)",height:"70%"}}>
+            <h2>Due Bills</h2>
+            {dueBills.length > 0 ? (
+              <div className="slider" >
+                <button className="prev" onClick={prevDueSlide}>&#8249;</button>
+                <div className="bill-box">
+                  <h4>{new Date(dueBills[currentDueIndex].month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h4>
+                  <p>Consumption: {dueBills[currentDueIndex].consumption} m³</p>
+                  <p>Amount Due: ${dueBills[currentDueIndex].amount_due}</p>
+              <span>
+                  <PayPalScriptProvider   options={{ clientId: "test" }}>
+            <PayPalButtons onClick={()=>{setChange(change+1);PayedBill(dueBills[currentDueIndex].id);nextDueSlide()}}  style={{ layout: "horizontal" }} />
+         </PayPalScriptProvider>
+        </span>
+                </div>
+                <button className="next" onClick={nextDueSlide}>&#8250;</button>
+              </div>
+            ) : (
+              <p>Everything is paid and up to date</p>
+            )}
           </div>
         </div>
       </div>
